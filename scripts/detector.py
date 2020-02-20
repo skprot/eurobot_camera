@@ -35,24 +35,29 @@ class Detect():
         output = self.yolo(img, self.CUDA)
         output = write_results(output, self.confidence, self.num_classes, nms_conf=self.nms_thesh)
 
-        output[:, 1:3] = torch.clamp(output[:, 1:3], 0.0, float(self.inp_dim))
-        output[:, 3:5] = torch.clamp(output[:, 3:5], 0.0, float(new_h))
+        try:
+            output[:, 1:3] = torch.clamp(output[:, 1:3], 0.0, float(self.inp_dim))
+            output[:, 3:5] = torch.clamp(output[:, 3:5], 0.0, float(new_h))
 
-        im_dim = self.im_dim.repeat(output.size(0), 1)
+            im_dim = self.im_dim.repeat(output.size(0), 1)
 
-        scaling_factor = torch.min(416 / im_dim, 1)[0].view(-1, 1)
+            scaling_factor = torch.min(416 / im_dim, 1)[0].view(-1, 1)
 
-        output[:, [1, 3]] -= (self.inp_dim - scaling_factor * im_dim[:, 0].view(-1, 1)) / 2
-        output[:, [2, 4]] -= (self.inp_dim - scaling_factor * im_dim[:, 1].view(-1, 1)) / 2
+            output[:, [1, 3]] -= (self.inp_dim - scaling_factor * im_dim[:, 0].view(-1, 1)) / 2
+            output[:, [2, 4]] -= (self.inp_dim - scaling_factor * im_dim[:, 1].view(-1, 1)) / 2
 
-        output[:, 1:5] /= scaling_factor
+            output[:, 1:5] /= scaling_factor
 
-        for i in range(output.shape[0]):
-            output[i, [1, 3]] = torch.clamp(output[i, [1, 3]], 0.0, im_dim[i, 0])
-            output[i, [2, 4]] = torch.clamp(output[i, [2, 4]], 0.0, im_dim[i, 1])
+            for i in range(output.shape[0]):
+                output[i, [1, 3]] = torch.clamp(output[i, [1, 3]], 0.0, im_dim[i, 0])
+                output[i, [2, 4]] = torch.clamp(output[i, [2, 4]], 0.0, im_dim[i, 1])
 
-        # TODO make parser and make strings
+            # TODO make parser and make strings
 
-        list(map(lambda x: model.write(x, frame, self.classes), output))  # FIXME remove then
+            list(map(lambda x: model.write(x, frame, self.classes), output))  # FIXME remove then
 
-        return frame
+            return output.shape[0]
+
+        except:
+            pass
+            return 0

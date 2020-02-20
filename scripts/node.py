@@ -62,7 +62,6 @@ class CameraNode():
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
             #TODO first shot?
             output = self.cup_detector.detect(undistorted)
-            output = "cups"
             # TODO crop function
 
             if start_flag and (time.time() - self.timer) > 0:
@@ -76,6 +75,7 @@ class CameraNode():
                     compas_frame = cv2.warpPerspective(undistorted, self.matrix_final, (2448, 1740))
                     self.compas = color_detection.findCompas(compas_frame)
 
+                print('Timer: ', time.time() - self.timer)
                 self.cups_publisher.publish(output)
                 rospy.logwarn(output)
                 self.compas_publisher.publish(self.compas)
@@ -83,8 +83,9 @@ class CameraNode():
                 self.seq_publisher.publish(self.seq)
                 rospy.logwarn(self.seq)
 
-            if start_flag and (time.time() - self.timer) > 110:
+            if start_flag and (time.time() - self.timer) > 120:
                 rospy.logwarn("MATCH ENDED")
+                return 0
 
     def find_feature_matrix(self):
         frame_num = 0
@@ -93,10 +94,8 @@ class CameraNode():
             ret, frame = self.cap.read()
             frame_num += 1
 
-        rospy.logwarn(frame_num)
         undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
         seq_frame = cv2.warpPerspective(undistorted, self.projection_matrix, (3000, 2000))
-        rospy.logwarn(self.template_path)
         matrix_feature = pinhole_functions.siftFeatures(seq_frame, self.template_path)
         self.matrix_final = np.dot(matrix_feature, self.projection_matrix)
 
