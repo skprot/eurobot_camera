@@ -93,8 +93,10 @@ class CameraNode():
             ret, frame = self.cap.read()
             frame_num += 1
 
+        rospy.logwarn(frame_num)
         undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
         seq_frame = cv2.warpPerspective(undistorted, self.projection_matrix, (3000, 2000))
+        rospy.logwarn(self.template_path)
         matrix_feature = pinhole_functions.siftFeatures(seq_frame, self.template_path)
         self.matrix_final = np.dot(matrix_feature, self.projection_matrix)
 
