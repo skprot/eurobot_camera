@@ -10,6 +10,10 @@ def decreaseNoise(image, d=15, sigmaColor=100, sigmaSpace=100):
     filtered_image = cv2.bilateralFilter(image, d, sigmaColor, sigmaSpace)
     return filtered_image
 
+def crop(frame):
+    frame_zero = np.zeros(frame.shape, dtype=np.uint8)
+    frame_zero[455:, 415:2020] = frame[455:, 415:2020]
+    return frame_zero
 
 def orbFeatures(frame, path):
     img2 = cv2.imread(path)

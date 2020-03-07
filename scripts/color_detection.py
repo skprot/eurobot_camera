@@ -55,6 +55,7 @@ def findColors(frame):
 
     return res2, color_sequence, color_str
 
+
 def findCompas(frame):
     compas_img = frame[1608:1620, 1200:1260]
     compas_img = cv2.cvtColor(compas_img, cv2.COLOR_BGR2GRAY)
