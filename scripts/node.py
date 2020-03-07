@@ -84,6 +84,8 @@ class CameraNode:
                 #self.cups_publisher.publish(output) test smth
                 #rospy.logwarn(output) test smth
                 cv2.imshow('cups', output)
+                cv2.waitKey(1)
+
                 self.compas_publisher.publish(self.compas)
                 rospy.logwarn(self.compas)
                 self.seq_publisher.publish(self.seq)
