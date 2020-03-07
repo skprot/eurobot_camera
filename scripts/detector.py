@@ -56,7 +56,7 @@ class Detect():
 
             list(map(lambda x: model.write(x, frame, self.classes), output))  # FIXME remove then
 
-            return output.shape[0]
+            return frame
 
         except:
             pass

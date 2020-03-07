@@ -81,8 +81,9 @@ class CameraNode:
                     self.compas = color_detection.findCompas(compas_frame)
 
                 print('Timer: ', time.time() - self.timer)
-                self.cups_publisher.publish(output)
-                rospy.logwarn(output)
+                #self.cups_publisher.publish(output) test smth
+                #rospy.logwarn(output) test smth
+                cv2.imshow('cups', output)
                 self.compas_publisher.publish(self.compas)
                 rospy.logwarn(self.compas)
                 self.seq_publisher.publish(self.seq)
