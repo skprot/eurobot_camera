@@ -107,7 +107,7 @@ class CameraNode:
         croped_img = pinhole_functions.crop(cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740)))
         self.crop_mask = cv2.warpPerspective(croped_img, np.linalg.inv(self.matrix_projection), self.DIM)
         self.crop_mask = cv2.cvtColor(self.crop_mask, cv2.COLOR_BGR2GRAY)
-        self.crop_mask = cv2.threshold(self.crop_mask, 1, 1, cv2.THRESH_BINARY)
+        _, self.crop_mask = cv2.threshold(self.crop_mask, 1, 1, cv2.THRESH_BINARY)
 
 if __name__ == '__main__':
 
