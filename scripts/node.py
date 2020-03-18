@@ -57,7 +57,10 @@ class CameraNode:
         rospy.loginfo("CAMERA CYCLE STARTED")
         self.run()
 
-    def start_status_callback(self, data):
+    def start_status_callback_main(self, data):
+        self.start_status = data.data
+
+    def start_status_callback_secondary(self, data):
         self.start_status = data.data
 
     def run(self):
