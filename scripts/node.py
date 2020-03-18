@@ -37,8 +37,8 @@ class CameraNode:
         self.reef_publisher = rospy.Publisher('/reef_presence', String, queue_size=1)
         self.field_publisher = rospy.Publisher('/field_presence', String, queue_size=1)
 
-        rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
-        rospy.Subscriber('/secondary_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
+        rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback_main, queue_size=1)
+        rospy.Subscriber('/secondary_robot/stm/start_status', String, self.start_status_callback_secondary, queue_size=1)
 
 
         self.timer = -1
@@ -74,7 +74,7 @@ class CameraNode:
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            undistorted = cv2.bitwise_and(undistorted, undistorted, mask=self.crop_mask)
+            #undistorted = cv2.bitwise_and(undistorted, undistorted, mask=self.crop_mask)
             # TODO first shot?
             output = self.cup_detector.detect(undistorted)
             # TODO crop function
