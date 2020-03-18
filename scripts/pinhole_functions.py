@@ -86,7 +86,7 @@ def siftFeatures(frame, path):
     matches_img = cv2.drawMatches(frame_gray, keypoints1, template_gray, keypoints2, good, None, **draw_params)
     cv2.imwrite("../matches.jpg", matches_img)
 
-    print('Matches = ', len(good))
+    rospy.loginfo('Matches = ', len(good))
 
     return M
 
