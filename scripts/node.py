@@ -38,6 +38,8 @@ class CameraNode:
         self.field_publisher = rospy.Publisher('/field_presence', String, queue_size=1)
 
         rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
+        rospy.Subscriber('/secondary_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
+
 
         self.timer = -1
         self.seq = ""
