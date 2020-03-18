@@ -37,9 +37,7 @@ class CameraNode:
         self.reef_publisher = rospy.Publisher('/reef_presence', String, queue_size=1)
         self.field_publisher = rospy.Publisher('/field_presence', String, queue_size=1)
 
-        rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback_main, queue_size=1)
-        rospy.Subscriber('/secondary_robot/stm/start_status', String, self.start_status_callback_secondary, queue_size=1)
-
+        rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
 
         self.timer = -1
         self.seq = ""
@@ -53,14 +51,11 @@ class CameraNode:
 
         self.find_feature_matrix()
 
-        rospy.loginfo("INITIALIZATION COMPLETED")
-        rospy.loginfo("CAMERA CYCLE STARTED")
+        rospy.logwarn("INITIALIZATION COMPLETED")
+        rospy.logwarn("CAMERA CYCLE STARTED")
         self.run()
 
-    def start_status_callback_main(self, data):
-        self.start_status = data.data
-
-    def start_status_callback_secondary(self, data):
+    def start_status_callback(self, data):
         self.start_status = data.data
 
     def run(self):
@@ -68,13 +63,13 @@ class CameraNode:
         while not rospy.is_shutdown():
             if self.start_status == "1" and not start_flag:
                 self.timer = time.time()
-                rospy.loginfo('MATCH STARTED')
+                rospy.logwarn('MATCH STARTED')
                 start_flag = True
 
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            #undistorted = cv2.bitwise_and(undistorted, undistorted, mask=self.crop_mask)
+            undistorted = cv2.bitwise_and(undistorted, undistorted, mask=self.crop_mask)
             # TODO first shot?
             output = self.cup_detector.detect(undistorted)
             # TODO crop function
@@ -84,16 +79,17 @@ class CameraNode:
                 if self.seq == "":
                     # TODO REMAKE AFTER RETRAINIG
                     seq_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-                    # _, colors, self.seq = color_detection.findColors(seq_frame
+                    #_, colors, self.seq = color_detection.findColors(seq_frame
                     _, self.seq = color_detection.findColorsHSV(seq_frame)
+
 
                 if self.compass == "" and (time.time() - self.timer) > 30:
                     compass_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
                     self.compass = color_detection.findCompas(compass_frame)
 
                 print('Timer: ', time.time() - self.timer)
-                # self.cups_publisher.publish(output) test smth
-                # rospy.logwarn(output) test smth
+                #self.cups_publisher.publish(output) test smth
+                #rospy.logwarn(output) test smth
                 cv2.imshow('cups', output)
                 cv2.waitKey(1)
 
@@ -107,7 +103,7 @@ class CameraNode:
                 rospy.loginfo(self.reef_cups)
 
             if start_flag and (time.time() - self.timer) > 120:
-                rospy.loginfo("MATCH ENDED")
+                rospy.logwarn("MATCH ENDED")
                 return 0
 
     def find_feature_matrix(self):
@@ -126,7 +122,6 @@ class CameraNode:
         self.crop_mask = cv2.warpPerspective(croped_img, np.linalg.inv(self.matrix_projection), self.DIM)
         self.crop_mask = cv2.cvtColor(self.crop_mask, cv2.COLOR_BGR2GRAY)
         _, self.crop_mask = cv2.threshold(self.crop_mask, 1, 1, cv2.THRESH_BINARY)
-
 
 if __name__ == '__main__':
 
