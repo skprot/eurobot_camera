@@ -34,18 +34,13 @@ class CameraNode:
         self.seq_publisher = rospy.Publisher('/sequence', String, queue_size=1)
         self.compas_publisher = rospy.Publisher('/wind_direction', String, queue_size=1)
         self.cups_publisher = rospy.Publisher('/field_cups', String, queue_size=1)
-        self.reef_publisher = rospy.Publisher('/reef_presence', String, queue_size=1)
-        self.field_publisher = rospy.Publisher('/field_presence', String, queue_size=1)
 
         rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
 
         self.timer = -1
         self.seq = ""
-        self.compass = ""
+        self.compas = ""
         self.start_status = ""
-        self.reef_cups = "1111111111"
-        self.field_cups = "11111111"
-
         self.matrix_projection = 0
         self.crop_mask = 0
 
@@ -83,9 +78,9 @@ class CameraNode:
                     _, self.seq = color_detection.findColorsHSV(seq_frame)
 
 
-                if self.compass == "" and (time.time() - self.timer) > 30:
-                    compass_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-                    self.compass = color_detection.findCompas(compass_frame)
+                if self.compas == "" and (time.time() - self.timer) > 30:
+                    compas_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
+                    self.compas = color_detection.findCompas(compas_frame)
 
                 print('Timer: ', time.time() - self.timer)
                 #self.cups_publisher.publish(output) test smth
@@ -93,14 +88,10 @@ class CameraNode:
                 cv2.imshow('cups', output)
                 cv2.waitKey(1)
 
-                self.compas_publisher.publish(self.compass)
-                rospy.loginfo(self.compass)
+                self.compas_publisher.publish(self.compas)
+                rospy.logwarn(self.compas)
                 self.seq_publisher.publish(self.seq)
-                rospy.loginfo(self.seq)
-                self.field_publisher.publish(self.field_cups)
-                rospy.loginfo(self.field_cups)
-                self.reef_publisher.publish(self.reef_cups)
-                rospy.loginfo(self.reef_cups)
+                rospy.logwarn(self.seq)
 
             if start_flag and (time.time() - self.timer) > 120:
                 rospy.logwarn("MATCH ENDED")
