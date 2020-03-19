@@ -79,7 +79,10 @@ def findColorsHSV(frame):
         temp = 0
         for j in range(red_frame.shape[0]):
             temp += red_frame[j][i]
-        temp /= red_frame.shape[0]
+        if temp == 0:
+            temp -= 255
+        else:
+            temp /= red_frame.shape[0]
         av_cups_img.append(temp)
 
     segment_length = cups_img.shape[1] / 5
@@ -98,7 +101,7 @@ def findColorsHSV(frame):
     color_sequence = []
     color_str = ""
     for i in range(len(segment_list)):
-        if segment_list[i] > 0:
+        if segment_list[i] > 10:
             color_sequence.append(colors["Red"])
             color_str += "R"
         else:
@@ -106,6 +109,7 @@ def findColorsHSV(frame):
             color_str += "G"
 
     return red_frame, color_str
+
 
 
 def findCompas(frame):

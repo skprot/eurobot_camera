@@ -1,6 +1,7 @@
 import cv2
 from cv2 import aruco
 import numpy as np
+import rospy
 
 ARUCO_TABLE = np.array([[295, 1164], [250, 1047], [144, 1089], [188, 1206],
                         [1550, 800], [1450, 800], [1450, 700], [1550, 700]], dtype=np.float32) + 200 #2 markers with boat
