@@ -42,7 +42,9 @@ class CameraNode:
 
         self.timer = -1
         self.seq = ""
-        self.compas = ""
+        self.compass = ""
+        self.reef = "1111111111"
+        self.field = "11111111"
         self.start_status = ""
         self.matrix_projection = 0
         self.crop_mask = 0
@@ -50,7 +52,8 @@ class CameraNode:
         self.find_feature_matrix()
 
         rospy.logwarn("INITIALIZATION COMPLETED")
-        rospy.logwarn("CAMERA CYCLE STARTED")
+        rospy.logwarn("CAMERA LOOP STARTED")
+        rospy.logwarn("WAITING START STATUS")
         self.run()
 
     def start_status_callback_main(self, data):
@@ -84,20 +87,24 @@ class CameraNode:
                     _, self.seq = color_detection.findColorsHSV(seq_frame)
 
 
-                if self.compas == "" and (time.time() - self.timer) > 30:
+                if self.compass == "" and (time.time() - self.timer) > 30:
                     compas_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-                    self.compas = color_detection.findCompas(compas_frame)
+                    self.compass = color_detection.findCompas(compas_frame)
 
-                print('Timer: ', time.time() - self.timer)
+                #print('Timer: ', time.time() - self.timer)
                 #self.cups_publisher.publish(output) test smth
                 #rospy.logwarn(output) test smth
-                cv2.imshow('cups', output)
-                cv2.waitKey(1)
+                #cv2.imshow('cups', output)
+                #cv2.waitKey(1)
 
-                self.compas_publisher.publish(self.compas)
-                rospy.logwarn(self.compas)
+                self.compas_publisher.publish(self.compass)
+                rospy.loginfo(self.compass)
                 self.seq_publisher.publish(self.seq)
-                rospy.logwarn(self.seq)
+                rospy.loginfo(self.seq)
+                self.reef_publisher.publish(self.compass)
+                rospy.loginfo(self.field)
+                self.field_publisher.publish(self.seq)
+                rospy.loginfo(self.reef)
 
             if start_flag and (time.time() - self.timer) > 120:
                 rospy.logwarn("MATCH ENDED")
