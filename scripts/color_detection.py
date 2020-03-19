@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 
 def findColors(frame):
     colors = {
-        "Green" : 0,
-        "Red" : 1
+        "Green": 0,
+        "Red": 1
     }
 
     cups_img = frame[1662:1710, 430:830]
@@ -59,8 +59,8 @@ def findColors(frame):
 
 def findColorsHSV(frame):
     colors = {
-        "Green" : 0,
-        "Red" : 1
+        "Green": 0,
+        "Red": 1
     }
 
     cups_img = frame[1662:1710, 430:830]
