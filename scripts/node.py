@@ -34,8 +34,11 @@ class CameraNode:
         self.seq_publisher = rospy.Publisher('/sequence', String, queue_size=1)
         self.compas_publisher = rospy.Publisher('/wind_direction', String, queue_size=1)
         self.cups_publisher = rospy.Publisher('/field_cups', String, queue_size=1)
+        self.reef_publisher = rospy.Publisher('/reef_presence', String, queue_size=1)
+        self.field_publisher = rospy.Publisher('/field_presence', String, queue_size=1)
 
-        rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback, queue_size=1)
+        rospy.Subscriber('/main_robot/stm/start_status', String, self.start_status_callback_main, queue_size=1)
+        rospy.Subscriber('/secondary_robot/stm/start_status', String, self.start_status_callback_secondary, queue_size=1)
 
         self.timer = -1
         self.seq = ""
@@ -50,7 +53,10 @@ class CameraNode:
         rospy.logwarn("CAMERA CYCLE STARTED")
         self.run()
 
-    def start_status_callback(self, data):
+    def start_status_callback_main(self, data):
+        self.start_status = data.data
+
+    def start_status_callback_secondary(self, data):
         self.start_status = data.data
 
     def run(self):
