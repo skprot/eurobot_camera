@@ -54,9 +54,9 @@ class Detect():
 
             # TODO make parser and make strings
 
-            list(map(lambda x: model.write(x, frame, self.classes), output))  # FIXME remove then
+            #list(map(lambda x: model.write(x, frame, self.classes), output))  # FIXME remove then
 
-            return frame
+            return output.shape[0]
 
         except:
             pass

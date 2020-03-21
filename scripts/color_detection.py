@@ -75,14 +75,18 @@ def findColorsHSV(frame):
     red_frame = cv2.cvtColor(red_frame, cv2.COLOR_BGR2GRAY)
 
     av_cups_img = []
+
     for i in range(red_frame.shape[1]):
         temp = 0
+
         for j in range(red_frame.shape[0]):
             temp += red_frame[j][i]
+
         if temp == 0:
             temp -= 255
         else:
             temp /= red_frame.shape[0]
+
         av_cups_img.append(temp)
 
     segment_length = cups_img.shape[1] / 5
@@ -90,8 +94,10 @@ def findColorsHSV(frame):
 
     j = 1
     av_segment = 0
+
     for i in range(len(av_cups_img)):
         av_segment += av_cups_img[i]
+
         if i > j * segment_length - 2:
             av_segment /= segment_length
             segment_list.append(av_segment)
@@ -100,7 +106,9 @@ def findColorsHSV(frame):
 
     color_sequence = []
     color_str = ""
+
     for i in range(len(segment_list)):
+
         if segment_list[i] > 10:
             color_sequence.append(colors["Red"])
             color_str += "R"
@@ -108,14 +116,19 @@ def findColorsHSV(frame):
             color_sequence.append(colors["Green"])
             color_str += "G"
 
+    for letter in reversed(color_str):
+        if letter == "R":
+            color_str += "G"
+        else:
+            color_str += "R"
+
     return red_frame, color_str
 
 
-
 def findCompas(frame):
-    compas_img = frame[1608:1620, 1200:1260]
-    compas_img = cv2.cvtColor(compas_img, cv2.COLOR_BGR2GRAY)
-    ret, tresh = cv2.threshold(compas_img, 127, 255, cv2.THRESH_BINARY)
+    compass_img = frame[1608:1620, 1200:1260]
+    compass_img = cv2.cvtColor(compass_img, cv2.COLOR_BGR2GRAY)
+    ret, tresh = cv2.threshold(compass_img, 127, 255, cv2.THRESH_BINARY)
     avg = cv2.mean(tresh)
     avg = avg[0]
 

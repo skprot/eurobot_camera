@@ -6,7 +6,7 @@ import detector
 import cv2
 import numpy as np
 import subprocess
-import pinhole_functions
+import calibration
 import time
 import color_detection
 
@@ -32,7 +32,7 @@ class CameraNode:
         self.cup_detector = detector.Detect(self.model_cfg_path, self.model_weights_path, self.classes, confidence=0.4)
 
         self.seq_publisher = rospy.Publisher('/sequence', String, queue_size=1)
-        self.compas_publisher = rospy.Publisher('/wind_direction', String, queue_size=1)
+        self.compass_publisher = rospy.Publisher('/wind_direction', String, queue_size=1)
         self.cups_publisher = rospy.Publisher('/field_cups', String, queue_size=1)
         self.reef_publisher = rospy.Publisher('/reef_presence', String, queue_size=1)
         self.field_publisher = rospy.Publisher('/field_presence', String, queue_size=1)
@@ -73,10 +73,8 @@ class CameraNode:
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            undistorted = cv2.bitwise_and(undistorted, undistorted, mask=self.crop_mask)
-            # TODO first shot?
-            output = self.cup_detector.detect(undistorted)
-            # TODO crop function
+            undistorted2 = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740)) #TEST 
+            output = self.cup_detector.detect(undistorted2)
 
             if start_flag and (time.time() - self.timer) > 0:
 
@@ -97,13 +95,13 @@ class CameraNode:
                 #cv2.imshow('cups', output)
                 #cv2.waitKey(1)
 
-                self.compas_publisher.publish(self.compass)
+                self.compass_publisher.publish(self.compass)
                 rospy.loginfo(self.compass)
                 self.seq_publisher.publish(self.seq)
                 rospy.loginfo(self.seq)
-                self.reef_publisher.publish(self.compass)
-                rospy.loginfo(self.field)
-                self.field_publisher.publish(self.seq)
+                self.reef_publisher.publish(self.field)
+                rospy.loginfo(output)
+                self.field_publisher.publish(self.reef)
                 rospy.loginfo(self.reef)
 
             if start_flag and (time.time() - self.timer) > 120:
@@ -120,12 +118,13 @@ class CameraNode:
         undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                 borderMode=cv2.BORDER_CONSTANT)
         seq_frame = cv2.warpPerspective(undistorted, self.projection_matrix, (3000, 2000))
-        matrix_feature = pinhole_functions.siftFeatures(seq_frame, self.template_path)
+        matrix_feature = calibration.siftFeatures(seq_frame, self.template_path)
         self.matrix_projection = np.dot(matrix_feature, self.projection_matrix)
-        croped_img = pinhole_functions.crop(cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740)))
+        croped_img = calibration.crop(cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740)))
         self.crop_mask = cv2.warpPerspective(croped_img, np.linalg.inv(self.matrix_projection), self.DIM)
         self.crop_mask = cv2.cvtColor(self.crop_mask, cv2.COLOR_BGR2GRAY)
         _, self.crop_mask = cv2.threshold(self.crop_mask, 1, 1, cv2.THRESH_BINARY)
+
 
 if __name__ == '__main__':
 
