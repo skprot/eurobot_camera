@@ -29,7 +29,7 @@ class CameraNode:
         self.model_cfg_path = rospy.get_param("MODEL_CONFIG_PATH")
         self.model_weights_path = rospy.get_param("MODEL_WEIGHTS_PATH")
         self.classes = rospy.get_param("CLASSES")
-        self.cup_detector = detector.Detect(self.model_cfg_path, self.model_weights_path, self.classes, confidence=0.4)
+        self.cup_detector = detector.Detect(self.model_cfg_path, self.model_weights_path, self.classes, DIM=(1605, 1285), confidence=0.5)
 
         self.seq_publisher = rospy.Publisher('/sequence', String, queue_size=1)
         self.compass_publisher = rospy.Publisher('/wind_direction', String, queue_size=1)
