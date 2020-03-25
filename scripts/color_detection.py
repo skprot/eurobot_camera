@@ -138,3 +138,7 @@ def findCompas(frame):
         return "North"
     else:
         return "fucked"
+
+def crop(frame):
+    frame_zero = frame[455:, 415:2020]
+    return frame_zero

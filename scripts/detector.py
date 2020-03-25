@@ -1,18 +1,18 @@
 import model
 from utils import *
+import warnings
 import torch
 import time
 
 
 class Detect():
-
-    def __init__(self, config_path, weights_path, classes, confidence=0.4, DIM=[2448, 2048]):
+    def __init__(self, config_path, weights_path, classes, DIM, confidence=0.5, nms_tresh=0.4):
         self.config = config_path
         self.yolo = model.Model(self.config)
         self.yolo.load_weights(weights_path)
         self.classes = classes
         self.confidence = confidence
-        self.nms_thesh = 0.4
+        self.nms_thesh = nms_tresh
         self.num_classes = len(classes)
         self.inp_dim = int(self.yolo.net_info["height"])
         self.im_dim = DIM
@@ -26,8 +26,9 @@ class Detect():
             print('CUDA is fasle! Using CPU \n')
 
     def detect(self, frame):
-        start = time.time()
         img, new_h = model.prep_image(frame, self.inp_dim)
+        field_cups = []
+        reef_cups = []
 
         if self.CUDA:
             img = img.cuda()
@@ -37,7 +38,7 @@ class Detect():
 
         try:
             output[:, 1:3] = torch.clamp(output[:, 1:3], 0.0, float(self.inp_dim))
-            output[:, 3:5] = torch.clamp(output[:, 3:5], 0.0, float(new_h))
+            output[:, 3:5] = torch.clamp(output[:, 3:5], 0.0, float(self.inp_dim))
 
             im_dim = self.im_dim.repeat(output.size(0), 1)
 
@@ -52,12 +53,14 @@ class Detect():
                 output[i, [1, 3]] = torch.clamp(output[i, [1, 3]], 0.0, im_dim[i, 0])
                 output[i, [2, 4]] = torch.clamp(output[i, [2, 4]], 0.0, im_dim[i, 1])
 
-            # TODO make parser and make strings
-
-            #list(map(lambda x: model.write(x, frame, self.classes), output))  # FIXME remove then
-
-            return output.shape[0]
+            for i in range(output.shape[0]):
+                if output[i, 7] == 0 or output[i, 7] == 1:
+                    field_cups.append([[float(output[i, 1]), float(output[i, 2])], [float(output[i, 3]), float(output[i, 4])]])
+                if output[i, 7] == 2 or output[i, 7] == 3:
+                    reef_cups.append([[float(output[i, 1]), float(output[i, 2])], [float(output[i, 3]), float(output[i, 4])]])
 
         except:
             pass
-            return 0
+
+        return field_cups, reef_cups
+

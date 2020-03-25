@@ -41,10 +41,11 @@ class CameraNode:
         rospy.Subscriber('/secondary_robot/stm/start_status', String, self.start_status_callback_secondary, queue_size=1)
 
         self.timer = -1
+        self.fps_timer = -1
         self.seq = ""
         self.compass = ""
-        self.reef = "1111111111"
-        self.field = "11111111"
+        self.reef = ""
+        self.field = ""
         self.start_status = ""
         self.matrix_projection = 0
         self.crop_mask = 0
@@ -64,26 +65,37 @@ class CameraNode:
 
     def run(self):
         start_flag = False
+
         while not rospy.is_shutdown():
+
             if self.start_status == "1" and not start_flag:
                 self.timer = time.time()
                 rospy.logwarn('MATCH STARTED')
                 start_flag = True
 
+            self.fps_timer = time.time()
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            undistorted2 = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740)) #TEST 
-            output = self.cup_detector.detect(undistorted2)
+            undistorted_croped = color_detection.crop(undistorted) #TEST
+            detected_field_cups, detected_reef_cups = self.cup_detector.detect(undistorted_croped)
 
             if start_flag and (time.time() - self.timer) > 0:
 
+                if self.field == "":
+                    initial_field_cups = detected_field_cups
+
+                self.field = self.get_cups_str(detected_field_cups, initial_field_cups)
+
+                if self.reef == "":
+                    initial_reef_cups = detected_reef_cups
+
+                self.reef = self.get_cups_str(detected_reef_cups, initial_reef_cups)
+
                 if self.seq == "":
-                    # TODO REMAKE AFTER RETRAINIG
                     seq_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
                     #_, colors, self.seq = color_detection.findColors(seq_frame
                     _, self.seq = color_detection.findColorsHSV(seq_frame)
-
 
                 if self.compass == "" and (time.time() - self.timer) > 30:
                     compas_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
@@ -100,9 +112,10 @@ class CameraNode:
                 self.seq_publisher.publish(self.seq)
                 rospy.loginfo(self.seq)
                 self.reef_publisher.publish(self.field)
-                rospy.loginfo(output)
+                rospy.loginfo(self.field)
                 self.field_publisher.publish(self.reef)
                 rospy.loginfo(self.reef)
+                rospy.loginfo("fps: {}".format(1 / (time.time() - self.fps_timer)))
 
             if start_flag and (time.time() - self.timer) > 120:
                 rospy.logwarn("MATCH ENDED")
@@ -125,6 +138,40 @@ class CameraNode:
         self.crop_mask = cv2.cvtColor(self.crop_mask, cv2.COLOR_BGR2GRAY)
         _, self.crop_mask = cv2.threshold(self.crop_mask, 1, 1, cv2.THRESH_BINARY)
 
+    def get_cups_str(self, detected_field_cups, initial_field_cups):
+        centers = []
+        str = ""
+
+        if len(detected_field_cups) != 0:
+
+            for i in range(len(detected_field_cups)):
+                center_x = int(
+                    detected_field_cups[i][0][0] + (detected_field_cups[i][1][0] - detected_field_cups[i][0][0]) / 2)
+                center_y = int(
+                    detected_field_cups[i][0][1] + (detected_field_cups[i][1][1] - detected_field_cups[i][0][1]) / 2)
+                centers.append((center_x, center_y))
+
+            presence = False
+
+            for j in range(len(initial_field_cups)):
+                for i in range(len(centers)):
+
+                    if initial_field_cups[j][0][0] < centers[i][0] < initial_field_cups[j][1][0]:
+
+                        if initial_field_cups[j][0][1] < centers[i][1] < initial_field_cups[j][1][1]:
+                            presence = True
+
+                if presence:
+                    str += "1"
+                    presence = False
+
+                else:
+                    str += "0"
+
+        else:
+            return "00000000"
+
+        return str
 
 if __name__ == '__main__':
 
