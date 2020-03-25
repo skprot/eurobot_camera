@@ -112,8 +112,8 @@ class CameraNode:
 
                 self.compass_publisher.publish(self.compass)
                 self.seq_publisher.publish(self.seq)
-                self.reef_publisher.publish(self.field)
-                self.field_publisher.publish(self.reef)
+                self.reef_publisher.publish(self.reef)
+                self.field_publisher.publish(self.field)
                 rospy.loginfo("compass: {}".format(self.compass))
                 rospy.loginfo("sequence cups: {}".format(self.seq))
                 rospy.loginfo("field cups: {}".format(self.field))
