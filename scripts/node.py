@@ -84,11 +84,13 @@ class CameraNode:
 
                 if self.field == "":
                     initial_field_cups = detected_field_cups
+                    initial_field_cups.sort(key=lambda k: k[0])
 
                 self.field = self.get_cups_str(detected_field_cups, initial_field_cups)
 
                 if self.reef == "":
                     initial_reef_cups = detected_reef_cups
+                    initial_reef_cups.sort(key=lambda k: k[0])
 
                 self.reef = self.get_cups_str(detected_reef_cups, initial_reef_cups)
 
@@ -108,13 +110,13 @@ class CameraNode:
                 #cv2.waitKey(1)
 
                 self.compass_publisher.publish(self.compass)
-                rospy.loginfo(self.compass)
                 self.seq_publisher.publish(self.seq)
-                rospy.loginfo(self.seq)
                 self.reef_publisher.publish(self.field)
-                rospy.loginfo(self.field)
                 self.field_publisher.publish(self.reef)
-                rospy.loginfo(self.reef)
+                rospy.loginfo("compass: {}".format(self.compass))
+                rospy.loginfo("sequence cups: {}".format(self.seq))
+                rospy.loginfo("field cups: {}".format(self.field))
+                rospy.loginfo("reef cups: {}".format(self.reef))
                 rospy.loginfo("fps: {}".format(1 / (time.time() - self.fps_timer)))
 
             if start_flag and (time.time() - self.timer) > 120:
