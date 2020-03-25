@@ -77,7 +77,8 @@ class CameraNode:
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            undistorted_croped = color_detection.crop(undistorted) #TEST
+            undistorted_croped = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
+            undistorted_croped = color_detection.crop(undistorted_croped) #TEST
             detected_field_cups, detected_reef_cups = self.cup_detector.detect(undistorted_croped)
 
             if start_flag and (time.time() - self.timer) > 0:
