@@ -113,8 +113,8 @@ class CameraNode:
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            undistorted_warped = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-            undistorted_croped = color_detection.crop(undistorted_warped)
+            undistorted_croped = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
+            undistorted_croped = color_detection.crop(undistorted_croped)
             detected_field_cups, detected_reef_cups = self.cup_detector.detect(undistorted_croped)
 
             if start_flag and (time.time() - self.timer) > 0:
@@ -132,10 +132,12 @@ class CameraNode:
                 self.reef = get_cups_str(detected_reef_cups, initial_reef_cups)
 
                 if self.seq == "":
-                    self.seq = color_detection.findColorsHSV(undistorted_warped)
+                    seq_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
+                    self.seq = color_detection.findColorsHSV(seq_frame)
 
                 if self.compass == "" and (time.time() - self.timer) > 30:
-                    self.compass = color_detection.findCompas(undistorted_warped)
+                    compas_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
+                    self.compass = color_detection.findCompas(compas_frame)
 
                 self.compass_publisher.publish(self.compass)
                 self.seq_publisher.publish(self.seq)
