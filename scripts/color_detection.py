@@ -122,7 +122,7 @@ def findColorsHSV(frame):
         else:
             color_str += "R"
 
-    return red_frame, color_str
+    return color_str
 
 
 def findCompas(frame):
@@ -137,7 +137,8 @@ def findCompas(frame):
     elif avg == 0:
         return "North"
     else:
-        return "fucked"
+        return "North"
+
 
 def crop(frame):
     frame_zero = frame[455:, 415:2020]

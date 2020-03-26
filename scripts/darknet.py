@@ -47,7 +47,7 @@ def create_modules(blocks):
     for index, x in enumerate(blocks[1:]):
         module = nn.Sequential()
 
-        if (x["type"] == "convolutional"):
+        if x["type"] == "convolutional":
             activation = x["activation"]
             try:
                 batch_normalize = int(x["batch_normalize"])
@@ -88,12 +88,12 @@ def create_modules(blocks):
             else:
                 module = maxpool
 
-        elif (x["type"] == "upsample"):
+        elif x["type"] == "upsample":
             stride = int(x["stride"])
             upsample = nn.Upsample(scale_factor=2, mode="nearest")
             module.add_module("upsample_{}".format(index), upsample)
 
-        elif (x["type"] == "route"):
+        elif x["type"] == "route":
             try:
                 x["layers"] = x["layers"].split(',')
             except AttributeError:
@@ -135,6 +135,6 @@ def create_modules(blocks):
         prev_filters = filters
         output_filters.append(filters)
 
-    return (net_info, module_list)
+    return net_info, module_list
 
 

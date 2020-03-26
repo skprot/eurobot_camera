@@ -6,5 +6,5 @@ PROJECTION_MATRIX: [[ 1.95613949e+01,  1.44453296e+01, -1.80988757e+04],
                     [-1.03130341e-03,  1.15055817e-02,  6.20443967e+00]]
 TEMPLATE_PATH: '/home/eurobot/Desktop/eurobot_camera/src/eurobot_camera/template/template.jpg'
 MODEL_CONFIG_PATH: '/home/eurobot/Desktop/eurobot_camera/src/eurobot_camera/model_config/yolov3-tiny_cups.cfg'
-MODEL_WEIGHTS_PATH: '/home/eurobot/Desktop/eurobot_camera/src/eurobot_camera/weights/2403_600ep.weights'
+MODEL_WEIGHTS_PATH: '/home/eurobot/Desktop/eurobot_camera/src/eurobot_camera/weights/2503_1200ep.weights'
 CLASSES: ['red_cup', 'green_cup', 'g', 'r']

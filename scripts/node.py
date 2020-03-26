@@ -11,6 +11,42 @@ import time
 import color_detection
 
 
+def get_cups_str(detected_field_cups, initial_field_cups):
+    centers = []
+    output_string = ""
+
+    if len(detected_field_cups) != 0:
+
+        for i in range(len(detected_field_cups)):
+            center_x = int(
+                detected_field_cups[i][0][0] + (detected_field_cups[i][1][0] - detected_field_cups[i][0][0]) / 2)
+            center_y = int(
+                detected_field_cups[i][0][1] + (detected_field_cups[i][1][1] - detected_field_cups[i][0][1]) / 2)
+            centers.append((center_x, center_y))
+
+        presence = False
+
+        for j in range(len(initial_field_cups)):
+
+            for i in range(len(centers)):
+                if initial_field_cups[j][0][0] < centers[i][0] < initial_field_cups[j][1][0]:
+
+                    if initial_field_cups[j][0][1] < centers[i][1] < initial_field_cups[j][1][1]:
+                        presence = True
+
+            if presence:
+                output_string += "1"
+                presence = False
+
+            else:
+                output_string += "0"
+
+    else:
+        return "00000000"
+
+    return output_string
+
+
 class CameraNode:
     def __init__(self):
         self.node = rospy.init_node('camera', anonymous=True)
@@ -77,8 +113,8 @@ class CameraNode:
             ret, frame = self.cap.read()
             undistorted = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR,
                                     borderMode=cv2.BORDER_CONSTANT)
-            undistorted_croped = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-            undistorted_croped = color_detection.crop(undistorted_croped) #TEST
+            undistorted_warped = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
+            undistorted_croped = color_detection.crop(undistorted_warped)
             detected_field_cups, detected_reef_cups = self.cup_detector.detect(undistorted_croped)
 
             if start_flag and (time.time() - self.timer) > 0:
@@ -87,40 +123,33 @@ class CameraNode:
                     initial_field_cups = detected_field_cups
                     initial_field_cups.sort(key=lambda k: k[0])
 
-                self.field = self.get_cups_str(detected_field_cups, initial_field_cups)
+                self.field = get_cups_str(detected_field_cups, initial_field_cups)
 
                 if self.reef == "":
                     initial_reef_cups = detected_reef_cups
                     initial_reef_cups.sort(key=lambda k: k[0])
 
-                self.reef = self.get_cups_str(detected_reef_cups, initial_reef_cups)
+                self.reef = get_cups_str(detected_reef_cups, initial_reef_cups)
 
                 if self.seq == "":
-                    seq_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-                    #_, colors, self.seq = color_detection.findColors(seq_frame
-                    _, self.seq = color_detection.findColorsHSV(seq_frame)
+                    self.seq = color_detection.findColorsHSV(undistorted_warped)
 
                 if self.compass == "" and (time.time() - self.timer) > 30:
-                    compas_frame = cv2.warpPerspective(undistorted, self.matrix_projection, (2448, 1740))
-                    self.compass = color_detection.findCompas(compas_frame)
-
-                #print('Timer: ', time.time() - self.timer)
-                #self.cups_publisher.publish(output) test smth
-                #rospy.logwarn(output) test smth
-                #cv2.imshow('cups', output)
-                #cv2.waitKey(1)
+                    self.compass = color_detection.findCompas(undistorted_warped)
 
                 self.compass_publisher.publish(self.compass)
                 self.seq_publisher.publish(self.seq)
                 self.reef_publisher.publish(self.reef)
                 self.field_publisher.publish(self.field)
+
                 rospy.loginfo("compass: {}".format(self.compass))
                 rospy.loginfo("sequence cups: {}".format(self.seq))
                 rospy.loginfo("field cups: {}".format(self.field))
                 rospy.loginfo("reef cups: {}".format(self.reef))
+                rospy.loginfo("time: {}".format(time.time() - self.timer))
                 rospy.loginfo("fps: {}".format(1 / (time.time() - self.fps_timer)))
 
-            if start_flag and (time.time() - self.timer) > 120:
+            if start_flag and (time.time() - self.timer) > 110:
                 rospy.logwarn("MATCH ENDED")
                 return 0
 
@@ -141,40 +170,6 @@ class CameraNode:
         self.crop_mask = cv2.cvtColor(self.crop_mask, cv2.COLOR_BGR2GRAY)
         _, self.crop_mask = cv2.threshold(self.crop_mask, 1, 1, cv2.THRESH_BINARY)
 
-    def get_cups_str(self, detected_field_cups, initial_field_cups):
-        centers = []
-        str = ""
-
-        if len(detected_field_cups) != 0:
-
-            for i in range(len(detected_field_cups)):
-                center_x = int(
-                    detected_field_cups[i][0][0] + (detected_field_cups[i][1][0] - detected_field_cups[i][0][0]) / 2)
-                center_y = int(
-                    detected_field_cups[i][0][1] + (detected_field_cups[i][1][1] - detected_field_cups[i][0][1]) / 2)
-                centers.append((center_x, center_y))
-
-            presence = False
-
-            for j in range(len(initial_field_cups)):
-                for i in range(len(centers)):
-
-                    if initial_field_cups[j][0][0] < centers[i][0] < initial_field_cups[j][1][0]:
-
-                        if initial_field_cups[j][0][1] < centers[i][1] < initial_field_cups[j][1][1]:
-                            presence = True
-
-                if presence:
-                    str += "1"
-                    presence = False
-
-                else:
-                    str += "0"
-
-        else:
-            return "00000000"
-
-        return str
 
 if __name__ == '__main__':
 

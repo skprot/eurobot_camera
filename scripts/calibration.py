@@ -11,7 +11,7 @@ def crop(frame):
 
 
 def siftFeatures(frame, path):
-    MIN_MATCH_COUNT = 20
+    MIN_MATCH_COUNT = 50
     template = cv2.imread(path)
 
     frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
